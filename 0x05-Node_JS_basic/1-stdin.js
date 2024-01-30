@@ -1,33 +1,14 @@
-const readline = require('readline')
+process.stdout.write('Welcome to Holberton School, what is your name?\n');
 
-// Create process in/out interface
+process.stdin.setEncoding('utf8');
 
-const rdln = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-    });
-console.log('Welcome to Holberton School, what is your name?')
-
-// Read user input
-if (process.stdin.isTTY) {
-    rdln.on('line', (inp) => {
-        console.log(`Your name is: ${inp}`);
-        //console.log('This important software is now closing')
-        process.exit()
-    });
-}
-
-rdln.on('line', (inp) => {
-    console.log(`Your name is: ${inp}`);
-    //console.log('This important software is now closing')
+process.stdin.on('readable', () => {
+  const chunk = process.stdin.read();
+  if (chunk !== null) {
+    process.stdout.write(`Your name is: ${chunk}`);
+  }
 });
 
-rdln.on('close', () => {
-    console.log('This important software is now closing')
-    process.exit()
-});
-
-rdln.on('SIGINT', () => {
-    console.log('This important software is now closing')
-    process.exit()
+process.stdin.on('end', () => {
+  process.stdout.write('This important software is now closing\n');
 });
