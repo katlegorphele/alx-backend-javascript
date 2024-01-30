@@ -1,70 +1,29 @@
-const fs = require('fs');
 const express = require('express');
 
+const args = process.argv.slice(2);
+const countStudents = require('./3-read_file_async');
+
+const DATABASE = args[0];
+
 const app = express();
-
-let DBPATH = '';
-
-if (process.argv.length > 2) {
-  DBPATH = process.argv[2].toString();
-}
-
-const PORT = 1245;
-
-const countStudents = async (path) => {
-  try {
-    const studentData = await fs.promises.readFile(path, 'utf8');
-    const students = [];
-
-    const transformedData = studentData.trim().split('\n').slice(1);
-    transformedData.forEach((data) => {
-
-      const [firstname, lastname, age, field] = data.split(',');
-
-      if (firstname && lastname && age && field) {
-        students.push({ firstname, lastname, age, field });
-      }
-    });
-
-    let result = `Number of students: ${students.length}\n`;
-
-    const fields = {};
-
-    students.forEach((student) => {
-      const { firstname, field } = student;
-      if (!fields[field]) {
-        fields[field] = [];
-      }
-      fields[field].push(firstname);
-    });
-
-    for (const field in fields) {
-      result += `Number of students in ${field}: ${
-        fields[field].length
-      }. List: ${fields[field].join(', ')}\n`;
-    }
-    return result;
-  } catch (err) {
-    throw new Error('Cannot load the database');
-  }
-};
+const port = 1245;
 
 app.get('/', (req, res) => {
   res.send('Hello Holberton School!');
 });
 
-app.get('/students', (req, res) => {
-  countStudents(DBPATH)
-    .then((data) => {
-      res.send(['This is the list of our students', data].join('\n'));
-    })
-    .catch((err) => {
-      res.send('This is the list of our students\n' + err.message.toString());
-    });
+app.get('/students', async (req, res) => {
+  const msg = 'This is the list of our students\n';
+  try {
+    const students = await countStudents(DATABASE);
+    res.send(`${msg}${students.join('\n')}`);
+  } catch (error) {
+    res.send(`${msg}${error.message}`);
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+  //   console.log(`Example app listening at http://localhost:${port}`);
 });
 
 module.exports = app;

@@ -1,42 +1,34 @@
-import fs from 'fs';
-// const fs = require('fs');
+const fs = require('fs');
 
-const readDatabase = async (path) => {
-  try {
-    // read the database
-    const studentData = await fs.promises.readFile(path, 'utf8');
-    const students = [];
-
-    const transformedData = studentData.trim().split('\n').slice(1);
-    transformedData.forEach((data) => {
-      // destructure each data in the list seperated by ,
-      const [firstname, lastname, age, field] = data.split(',');
-      // if the destructured exist
-      if (firstname && lastname && age && field) {
-        // create a student object with the property name and their value
-        // eslint-disable-next-line object-curly-newline
-        students.push({ firstname, lastname, age, field });
+function readDatabase(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(Error(err));
+        return;
       }
-    });
+      const content = data.toString().split('\n');
 
-    const fields = {};
+      let students = content.filter((item) => item);
 
-    students.forEach((student) => {
-      // extract firstname and field for the each student object
-      const { firstname, field } = student;
-      if (!fields[field]) {
-        fields[field] = [];
+      students = students.map((item) => item.split(','));
+
+      const fields = {};
+      for (const i in students) {
+        if (i !== 0) {
+          if (!fields[students[i][3]]) fields[students[i][3]] = [];
+
+          fields[students[i][3]].push(students[i][0]);
+        }
       }
-      fields[field].push(firstname);
+
+      delete fields.field;
+
+      resolve(fields);
+
+      //   return fields;
     });
-    return fields;
-  } catch (err) {
-    throw new Error('Cannot load the database');
-  }
-};
+  });
+}
 
-// readDatabase('../database.csv').then((data) => {
-//   console.log(data);
-// });
-
-module.exports = readDatabase;
+export default readDatabase;
